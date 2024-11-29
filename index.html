@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Formulario de Inscripción a Carrera</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: rgb(193, 221, 253);
+            margin: 110;
+            padding: 100;
+            display:  flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 8vh;
+        }
+        .form-container {
+            background-color: #ffffff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(120, 106, 106, 0.2);
+            max-width: 600px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        h2, h3 {
+            text-align: center;
+            color: #333;
+        }
+        label {
+            display: block;
+            margin: 10px 0 5px;
+            font-weight: bold;
+        }
+        input, select, textarea, button {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: 10px;
+            box-sizing: border-box;
+        }
+        input[type="radio"], input[type="checkbox"] {
+            width: auto;
+            margin-right: 5px;
+        }
+        button {
+            background-color: #ff0000;
+            color: white;
+            font-size: 16px;
+            border: none;
+            cursor: pointer;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        button:hover {
+            background-color: #1500b3;
+        }
+        .radio-group, .checkbox-group {
+            margin-bottom: 105px;
+        }
+        .required {
+            color: red;
+        }
+        .form-error {
+            color: red;
+            font-size: 12px;
+        }
+        /* Estilo personalizado para el texto de los campos obligatorios */
+        .required-info {
+            color: #d9534f;  /* Rojo claro */
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+    </style>
+    <script>
+        // Función de validación del formulario
+        function validateForm() {
+            var isValid = true;
+            var errorMessages = []; // Array para almacenar los mensajes de error
+
+            // Verificar que los campos obligatorios no estén vacíos
+            var requiredFields = document.querySelectorAll("[required]");
+            requiredFields.forEach(function (field) {
+                if (field.value.trim() === "") {
+                    isValid = false;
+                    errorMessages.push(`⚠️ Por favor completa el campo: "${field.previousElementSibling.innerText}".`);
+                }
+            });
+
+            // Verificar que el correo electrónico tenga formato válido
+            var emailField = document.getElementById("correo");
+            if (emailField && emailField.value && !/\S+@\S+\.\S+/.test(emailField.value)) {
+                isValid = false;
+                errorMessages.push("⚠️ El correo electrónico ingresado no es válido. Por favor, revisa su formato.");
+            }
+
+            // Verificar que los campos de teléfono, documento y celular contengan solo números
+            var phoneFields = ["telefono", "numero_documento", "celular"];
+            phoneFields.forEach(function (fieldId) {
+                var field = document.getElementById(fieldId);
+                if (field && field.value.trim() !== "") {
+                    if (!/^\d+$/.test(field.value.trim())) {
+                        isValid = false;
+                        errorMessages.push(`⚠️ El campo "${field.previousElementSibling.innerText}" solo debe contener números.`);
+                    }
+                }
+            });
+
+            // Verificar que los campos de nombres y apellidos solo contengan letras
+            var nameFields = ["primer_nombre", "segundo_nombre", "primer_apellido", "segundo_apellido"];
+            var namePattern = /^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+$/; // Permite letras, espacios y acentos
+            nameFields.forEach(function (fieldId) {
+                var field = document.getElementById(fieldId);
+                if (field && field.value.trim() !== "") {
+                    if (!namePattern.test(field.value.trim())) {
+                        isValid = false;
+                        errorMessages.push(`⚠️ Por favor, escribe solo letras en el campo "${field.previousElementSibling.innerText}".`);
+                    }
+                }
+            });
+
+            // Verificar que el campo de "¿Tiene usted hijos?" tenga una selección
+            var hijosField = document.querySelector('input[name="hijos"]:checked');
+            if (!hijosField) {
+                isValid = false;
+                errorMessages.push("⚠️ Debes seleccionar una opción en la pregunta: '¿Tiene usted hijos?'.");
+            }
+
+            // Función para validar que al menos una opción de "población" esté seleccionada
+             var poblacionChecked = document.querySelectorAll('input[name="poblaciones"]:checked');
+             if (poblacionChecked.length === 0 && !document.getElementById("poblacion_ninguna").checked) {
+              isValid = false;
+               errorMessages.push("⚠️ Debes seleccionar al menos una opción en la pregunta: '¿Se reconoce como parte de alguna de las siguientes poblaciones?'." );
+           }
+
+
+            // Verificar que el campo de discapacidad esté correctamente validado si se selecciona "Otra"
+            var discapacidadSelect = document.getElementById("discapacidad");
+            if (discapacidadSelect.value === "otra") {
+                var otraDiscapacidadField = document.getElementById("otra_discapacidad");
+                if (otraDiscapacidadField.value.trim() === "") {
+                    isValid = false;
+                    errorMessages.push("⚠️ Por favor especifica la discapacidad en el campo adicional.");
+                }
+            }
+
+            // Mostrar mensajes de error si existen
+            if (!isValid) {
+                alert("Hemos encontrado algunos errores en el formulario:\n\n" + errorMessages.join("\n"));
+            }
+
+            return isValid; // Retorna false si hay errores, lo que impide el envío del formulario
+        }
+    </script>
+</head>
+<body>
+    <div class="form-container">
+        <h2>Formulario de Inscripción a Carrera</h2>
+        <!-- Mensaje de campos obligatorios -->
+        <h5 aria-hidden="true" class="required-info">Campos con * son obligatorios</h5> 
+        
+        <form action="procesar_formulario.php" method="POST" onsubmit="return validateForm()">
+            <!-- Resto de los campos -->
+            <h3>¿En qué carrera desea inscribirse? <span class="required">*</span></h3>
+            <label for="carrera">Seleccione una carrera:</label>
+            <select id="carrera" name="carrera" required>
+                <option value="">Seleccionar</option>
+                <option value="administracion_empresas">Administración de Empresas</option>
+                <option value="bacteriologia">Bacteriología</option>
+                <option value="contaduria_publica">Contaduría Pública</option>
+                <option value="derecho">Derecho</option>
+                <option value="enfermeria">Enfermería</option>
+                <option value="ingenieria_sistemas">Ingeniería de Sistemas</option>
+                <option value="instrumentacion_quirurgica">Instrumentación Quirúrgica</option>
+                <option value="educacion_infantil">Licenciatura en Educación Infantil</option>
+                <option value="medicina">Medicina</option>
+                <option value="odontologia">Odontología</option>
+                <option value="atencion_prehospitalaria">tecnologia en Atención Prehospitalaria</option>
+                <option value="estetica_cosmetologia">Tecnología en Estética y Cosmetología</option>
+                <option value="mecanica_dental">Tecnología en Mecánica Dental</option>
+                <option value="trabajo_social">Trabajo Social</option>
+            </select>
+
+               <!-- Información personal -->
+<h3>Información Personal</h3>
+<label for="primer_nombre">Primer Nombre <span class="required">*</span></label>
+<input type="text" id="primer_nombre" name="primer_nombre" required placeholder="ingresa tu primer nombre.">
+
+<label for="segundo_nombre">Segundo Nombre:</label>
+<input type="text" id="segundo_nombre" name="segundo_nombre"placeholder=" ingresa tu segundo nombre.">
+
+<label for="primer_apellido">Primer Apellido <span class="required">*</span></label>
+<input type="text" id="primer_apellido" name="primer_apellido" required placeholder=" ingresa tu primer apellido.">
+
+<label for="segundo_apellido">Segundo Apellido:</label>
+<input type="text" id="segundo_apellido" name="segundo_apellido"  placeholder=" ingresa tu segundo apellido.">
+
+<label for="fecha_nacimiento">Fecha de Nacimiento <span class="required">*</span></label>
+<input type="date" id="fecha_nacimiento" name="fecha_nacimiento" required placeholder=" selecciona tu fecha de nacimiento.">
+
+<label for="tipo_documento">Tipo de Documento</label>
+<select id="tipo_documento" name="tipo_documento" required placeholder="Selecciona un tipo de documento.">
+    <option value="">Seleccionar</option>
+    <option>Cédula de Ciudadanía</option>
+    <option>Tarjeta de Identidad</option>
+    <option>Pasaporte</option>
+    <option>Cédula de Extranjería</option>
+</select>
+
+<label for="numero_documento">Número de Documento <span class="required">*</span></label>
+<input type="text" id="numero_documento" name="numero_documento" required placeholder="Por favor, ingresa tu número de documento.">
+
+<label for="sexo_biologico">Sexo Biológico <span class="required">*</span></label>
+<select id="sexo_biologico" name="sexo_biologico" required title="Selecciona tu sexo biológico.">
+    <option value="">Seleccionar</option>
+    <option value="masculino">Masculino</option>
+    <option value="femenino">Femenino</option>
+    
+</select>
+
+<label for="correo">Correo Electrónico <span class="required">*</span></label>
+<input type="email" id="correo" name="correo" required placeholder="Ingresa tu correo" title="Por favor, ingresa tu correo electrónico.">
+
+<label for="telefono">Teléfono <span class="required">*</span></label>
+<input type="tel" id="telefono" name="telefono" required  placeholder="Ingresa numero de telefono" title="Por favor, ingresa tu número de teléfono.">
+
+<label for="celular">Celular <span class="required">*</span></label>
+<input type="tel" id="celular" name="celular" required placeholder="Ingresa numero de celular" title="Por favor, ingresa tu numero de celular.">
+
+
+<!-- País, Ciudad y Dirección -->
+<label for="pais">País de Residencia <span class="required">*</span></label>
+<select id="pais" name="pais" onchange="toggleOtroPais()" required title="Por favor, selecciona tu país de residencia.">
+    <option value="">Seleccionar </option>
+    <option value="Colombia">Colombia</option>
+    <option value="México">México</option>
+    <option value="Argentina">Argentina</option>
+    <option value="España">España</option>
+    <option value="Estados Unidos">Estados Unidos</option>
+    <option value="otro">Otro</option>
+</select>
+
+<!-- Campo de texto que se muestra si se selecciona "Otro" -->
+<div id="otro-pais-container" style="display: none; margin-top: 10px;">
+    <label for="otro_pais">Por favor, especifique su país: <span class="required">*</span></label>
+    <input type="text" id="otro_pais" name="otro_pais" placeholder="Escriba su país aquí">
+</div>
+
+<script>
+    // Función para mostrar/ocultar el campo "Otro país"
+    function toggleOtroPais() {
+        var paisSelect = document.getElementById("pais");
+        var otroPaisContainer = document.getElementById("otro-pais-container");
+
+        if (paisSelect.value === "otro") {
+            otroPaisContainer.style.display = "block"; // Mostrar el campo
+            document.getElementById("otro_pais").setAttribute("required", "true"); // Hacerlo obligatorio
+        } else {
+            otroPaisContainer.style.display = "none"; // Ocultar el campo
+            document.getElementById("otro_pais").removeAttribute("required"); // Quitar obligatoriedad
+        }
+    }
+</script>
+
+
+<label for="ciudad">Ciudad de Residencia <span class="required">*</span></label>
+<input type="text" id="ciudad" name="ciudad" required placeholder="Ingresa tu ciudad" title="Por favor, ingresa tu ciudad de residencia.">
+
+<label for="direccion">Dirección Residencial <span class="required">*</span></label>
+<input type="text" id="direccion" name="direccion" required placeholder="Ejemplo: Calle 123 #45-67" title="Por favor, ingresa tu dirección residencial.">
+   
+    <!-- Estado Civil con radio buttons -->
+<h3>Estado Civil <span class="required"> * </span></h3>
+<label><input type="radio" name="estado_civil" value="soltero" required> Soltero</label><br>
+<label><input type="radio" name="estado_civil" value="casado" required> Casado</label><br>
+<label><input type="radio" name="estado_civil" value="divorciado" required> Divorciado</label><br>
+<label><input type="radio" name="estado_civil" value="viudo" required> Viudo</label><br>
+<label><input type="radio" name="estado_civil" value="separado" required> Separado</label><br>
+
+           <!-- Encuesta personal -->
+             <h3>Encuesta Personal<span class="required"> * </span> </h3>
+             <label>¿Tiene usted hijos?<span class="required"> * </span></label>
+             <label><input type="radio" name="hijos" value="No tengo"> No tengo</label>
+                <label><input type= "radio" name="hijos" value="1 hijo"> 1 hijo</label>
+                 <label><input type="radio" name="hijos" value="2 hijos"> 2 hijos</label>
+             <label><input type="radio" name="hijos" value="3 hijos"> 3 hijos</label>
+             <label><input type="radio" name="hijos" value="4 o más hijos"> 4 o más hijos</label>
+           
+            
+                <label for="poblaciones">¿Se reconoce como parte de alguna de las siguientes poblaciones? <span class="required">*</span></label><br>
+                <input type="checkbox" id="poblacion_ninguna" name="poblaciones" value="ninguna"> Ninguna<br>
+                  <input type="checkbox" id="poblacion_indigena" name="poblaciones" value="indigena"> Indígena<br>
+                    <input type="checkbox" id="poblacion_afrodescendiente" name="poblaciones" value="afrodescendiente"> Afrodescendiente<br>
+                <input type="checkbox" id="Raizales" name="poblaciones" value="Raizales"> Raizales<br>
+                 <input type="checkbox" id="pueblo_rom_gitano" name="poblaciones" value="pueblo_rom_gitano"> Pueblo ROM o Gitano<br>
+                <input type="checkbox" id="pueblo_mestizo" name="poblaciones" value="pueblo_mestizo"> Pueblo Mestizo<br>
+           
+            <script>
+                document.addEventListener("DOMContentLoaded", function () {
+                   const checkboxes = document.querySelectorAll("input[name='poblaciones']");
+                 const ningunaCheckbox = document.getElementById("poblacion_ninguna");
+           
+            checkboxes.forEach(checkbox => {
+           checkbox.addEventListener("change", function () {
+                         if (ningunaCheckbox.checked) {
+           // Si "Ninguna" está marcada, desmarcar las demás
+                     checkboxes.forEach(cb => {
+             if (cb !== ningunaCheckbox) {
+                 cb.checked = false;
+                    }
+                   });
+                   } else {
+                    // Si otra casilla se marca, desmarcar "Ninguna"
+                    if (this !== ningunaCheckbox) {
+                      ningunaCheckbox.checked = false;
+                         }
+               }
+                    });
+                    });
+                  });
+                </script>
+             <!-- Campo de discapacidad -->
+           <label>¿Cuenta con alguna discapacidad? <span class="required">*</span></label>
+           <select id="discapacidad" name="discapacidad" onchange="toggleOtraDiscapacidad()" required>
+             <option value="">--Seleccionar--</option>
+             <option value="Ninguna">Ninguna</option>
+               <option value="discapacidad_motriz">Discapacidad Motriz</option>
+             <option value="discapacidad_sorda">Discapacidad Sorda</option>
+              <option value="discapacidad_cognitiva">Discapacidad Cognitiva</option>
+             <option value="sordoceguera">Sordoceguera</option>
+              <option value="trastorno_voz_habla">Trastorno de la voz y el habla</option>
+             <option value="otra">Otra</option>
+           </select>
+           
+           <!-- Campo de texto que se muestra si se selecciona "Otra" -->
+           <div id="otra-discapacidad-container" style="display: none; margin-top: 10px;">
+              <label for="otra_discapacidad">Por favor especifique su discapacidad: <span class="required">*</span></label>
+              <input type="text" id="otra_discapacidad" name="otra_discapacidad" placeholder="Escriba su respuesta aquí">
+           </div>
+           
+           <script>
+           // Función para mostrar/ocultar el campo "Otra discapacidad"
+               function toggleOtraDiscapacidad() {
+                   var discapacidadSelect = document.getElementById("discapacidad");
+                     var otraDiscapacidadContainer = document.getElementById("otra-discapacidad-container");
+           
+                if (discapacidadSelect.value === "otra") {
+              otraDiscapacidadContainer.style.display = "block"; // Mostrar el campo
+                 document.getElementById("otra_discapacidad").setAttribute("required", "true"); // Hacerlo obligatorio
+                } else {
+             otraDiscapacidadContainer.style.display = "none"; // Ocultar el campo
+               document.getElementById("otra_discapacidad").removeAttribute("required"); // Quitar obligatoriedad
+              }
+           }
+           </script>
+           
+           
+           </select> 
+                    <label>¿Está trabajando actualmente?</label><span class="required">*</span></label>
+                 <select name="trabajo_actual" required> 
+                  <option value="">--Seleccionar--</option> 
+                              <option value="no_estoy trabajando">No estoy trabajando</option>
+                         <option value="si_independiente">Si  independiente</option>
+                 <option value="si_empleado">Si  empleado</option>
+           
+                    </select>
+            
+                <button type="submit">Enviar</button>
+           </form>
+           </div>
+           </body>
+           </html> 
+           
